@@ -1,0 +1,67 @@
+module ALU(input La, Ea, Lt, Df, Ef, Lc, Clk, Clr, [3:0] Su, [7:0] Wlowin, 
+output [7:0] Wlowout, output reg [3:0] FLGS); 
+    reg [7:0] A, TMP;  
+    assign Wlowout = (!La && Ea) ? A :  
+                     (Ef && !Lc) ? {4'h0, FLGS} :  
+                     (Ef && Lc) ? {7'h0, FLGS[0]} : 8'hzz; 
+    always @ (posedge Clk or posedge Clr) 
+        if(Clr) begin 
+            A <= 0; TMP <= 0; 
+        end else begin 
+            if(Lt && !Df) TMP <= Wlowin;  
+            if(Lt && Df) FLGS <= Wlowin[3:0];  
+            if(!Ef && Lc) FLGS[0] <= Wlowin[0]; 
+            if(La && !Ea) A <= Wlowin; 
+            if(La && Ea) begin 
+                case(Su) 
+                    4'b0000:  
+                        begin 
+                            if(!Lt && !Df) {FLGS[0],A} = A - TMP; 
+                            else A = A - TMP;  
+                        end 
+                    4'b0001: 
+                        begin 
+                            if(!Lt && !Df) {FLGS[0],A} = A + TMP; 
+                            else A = A + TMP;  
+                        end 
+                    4'b0010: A = ~A; 
+                    4'b0011: A = A & TMP;  
+                    4'b0100: A = A | TMP;  
+                    4'b0101: A = A ^ TMP;  
+                    4'b0110: 
+                        begin 
+                            if(!Lt && !Df) {FLGS[0],A} = {A,FLGS[0]}; 
+                            else A = {A[6:0],A[7]}; 
+                        end 
+                    4'b0111:  
+                        begin 
+                            if(!Lt && !Df) {FLGS[0],A} = {A[0],FLGS[0],A[7:1]}; 
+                            else A = {A[0],A[7:1]}; 
+                        end                      
+                    4'b1000: 
+                        begin 
+                            if(!Lt && !Df) {FLGS[0],A} = {A[7],A[6:0],A[7]}; 
+                            else A = {A[6:0],A[7]}; 
+                        end                  
+                    4'b1001: 
+                        begin 
+                            if(!Lt && !Df) {FLGS[0],A} = {A[0],A[0],A[7:1]}; 
+                            else A = {A[0],A[7:1]}; 
+                        end    
+                    4'b1010: 
+                        if(!Lt && !Df) {FLGS[0],A} = A + 1'b1; 
+                        else A = A + 1'b1; 
+                    4'b1011: 
+                        if(!Lt && !Df) {FLGS[0],A} = A - 1'b1; 
+                        else A = A - 1'b1;        
+                    default {FLGS[0],A} = 0;  
+                endcase
+                if(!Lt && !Df) 
+                    begin 
+                        FLGS[1] = A[7]; 
+                        FLGS[2] = ~|A; 
+                        FLGS[3] = ~^A;  
+                    end 
+            end 
+    end 
+endmodule
