@@ -1,0 +1,39 @@
+module IR(input Li, Clk, Clr, [7:0] Wlow, output reg [7:0] OpCode=0); 
+    always @ (posedge Clk)  if(Li) OpCode = Wlow; 
+endmodule 
+ 
+module IP1(input Clk, Clr, Ei1, [15:0] HEXENC, output [15:0] W); 
+    reg [15:0] IP1; 
+    assign W = Ei1 ? IP1 : 16'hzzzz; 
+    always @ (posedge Clk or posedge Clr) 
+        begin 
+            if(Clr) IP1 <= 0; 
+            else IP1 <= HEXENC; 
+        end 
+endmodule 
+ 
+module IP2(input Clk, Clr, Ei2, [7:0] IPWORD, output [7:0] Wlow); 
+    reg [7:0] IP2; 
+    assign Wlow = Ei2 ? IP2 : 8'hzz; 
+    always @ (posedge Clk or posedge Clr) 
+        begin 
+            if(Clr) IP2 <= 0; 
+            else IP2 <= IPWORD; 
+        end 
+endmodule 
+ 
+module OP3(input Clk, Clr, Lo3, [15:0] W, output reg [15:0] OP3); 
+    always @ (posedge Clk or posedge Clr) 
+        begin 
+            if(Clr) OP3 <= 0; 
+            else if(Lo3) OP3 <= W; 
+        end 
+endmodule 
+ 
+module OP4(input Clk, Clr, Lo4, [7:0] Wlow, output reg [7:0] OP4); 
+    always @ (posedge Clk or posedge Clr) 
+        begin 
+            if(Clr) OP4 <= 0; 
+            else if(Lo4) OP4 <= Wlow; 
+        end 
+endmodule 
