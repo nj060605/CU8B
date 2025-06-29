@@ -1,0 +1,31 @@
+module DATAPATH(input Clk, Clr, CJR, CNTRPIN, [15:0] HEXIN, [31:0] ContWord, 
+output [3:0] FLGS, [7:0] OpCode, [15:0] HEXOUT, [15:0] W); 
+    wire [4:0] Rs1, Rs2; wire [3:0] Su; 
+    wire Et, Ip, Is, Ds, Lm, Mr, Mw, Li, La, Ea, Lt, Df, Ef, Lc, Ei1, Ei2, 
+Lo3, Lo4; 
+    assign {Et, Ip, Is, Ds, Rs1, Rs2, Lm, Mr, Mw, Li, La, Ea, Lt, Df, Ef, 
+Lc, Su, Ei1, Ei2, Lo3, Lo4} = ContWord; 
+    wire [15:0] Wrbo, Wrbi; 
+    assign  W = (Rs1 == 5'b10000) ? Wrbo : 16'hzzzz,  
+            Wrbi = (Rs2 == 5'b10000) ? W : 16'hzzzz;  
+    REGBANK rgbk(CJR, Et, Ip, Is, Ds, Clk, Clr, Rs1, Rs2, Wrbi, Wrbo); 
+    wire [15:0] Wmo, Wmi; 
+    assign  W = Mr ? Wmo : 16'hzzzz,  
+            Wmi = (Mw || Lm) ? W : 16'hzzzz;  
+    MEMAR mmr(Lm, Mr, Mw, Clk, Clr, Wmi, Wmo); 
+    wire [7:0] Wii; 
+    assign  Wii = Li ? W[7:0] : 8'hzz; 
+    IR ir(Li, Clk, Clr, Wii, OpCode); 
+    wire [7:0] Walo, Wali; 
+    assign  W[7:0] = (Ea || Ef || Ef && Lc) ? Walo : 8'hzz,  
+            Wali = (La || Lt || Lc || Lt && Df) ? W[7:0] : 8'hzz;  
+    ALU alu(La, Ea, Lt, Df, Ef, Lc, Clk, Clr, Su, Wali, Walo, FLGS); 
+    wire [15:0] HEXENC; 
+    IP1 ip1(Clk, Clr, Ei1, HEXENC, W); 
+    wire Ready; wire [7:0] IPWORD, OPWORD;
+    assign IPWORD = {7'b0, Ready}; 
+    IP2 ip2(Clk, Clr, Ei2, IPWORD, W[7:0]); 
+    OP3 op3(Clk, Clr, Lo3, W, HEXOUT); 
+    OP4 op4(Clk, Clr, Lo4, W[7:0], OPWORD); 
+    HEXENCODER hexenc(Clk, Clr, OPWORD[7], CNTRPIN, HEXIN, Ready, HEXENC); 
+endmodule
