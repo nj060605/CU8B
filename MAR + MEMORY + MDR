@@ -1,0 +1,22 @@
+module MEMAR(input Lm, Mr, Mw, Clk, Clr, [15:0] Win, output [15:0] Wout); 
+  reg [7:0] MEM [65535:0]; 
+    reg [15:0] MAR; 
+    reg [7:0] MDR; 
+    assign Wout = Mr ? {8'hz, MDR} : 16'hz; 
+    initial $readmemb("RAM.data", MEM); 
+    always @ (posedge Clk or posedge Clr) 
+        if(Clr) begin 
+            MAR<=0; MDR<=0; 
+        end else begin 
+            if(Lm && !Mw)  
+                begin 
+         MAR <= Win; 
+         MDR <= MEM[Win]; 
+                end              
+            if(!Lm && Mw)  
+                begin 
+                    MDR <= Win[7:0]; 
+                    MEM[MAR] <= Win[7:0]; 
+                end   
+        end 
+endmodule
