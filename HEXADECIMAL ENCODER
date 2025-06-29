@@ -1,0 +1,11 @@
+ module HEXENCODER(input Clk, Clr, Ack, CNTRPIN, [15:0] IN, output reg Ready, 
+output reg [15:0] IP); 
+ always @ (posedge Clk or posedge Clr) begin 
+        if(Clr) begin 
+            Ready <= 0; IP <= 0; 
+        end else begin 
+                if(CNTRPIN) begin IP <= IN; Ready <= 1'b1; end              
+                else if(Ack) Ready <= 1'b0;   
+            end 
+        end 
+endmodule
