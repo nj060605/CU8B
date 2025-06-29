@@ -1,0 +1,5 @@
+ module ADDROM(output [9:0] OpCodeStart, input [7:0] OpCode); 
+    reg [9:0] ADDROM [255:0]; 
+    assign OpCodeStart = ADDROM[OpCode];  
+    initial $readmemb("ADDROM.data", ADDROM);  
+endmodule
