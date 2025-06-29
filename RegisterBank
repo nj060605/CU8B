@@ -1,0 +1,63 @@
+module REGBANK(input CJR, Et, Ip, Is, Ds, Clk, Clr, [4:0] Rs1, Rs2, [15:0] Win, 
+output [15:0] Wout); 
+    reg [7:0] B, C, D, E, H, L, W, Z;  
+    reg [15:0] SP, PC, Wassign; 
+    always @*  
+        begin 
+            case (Rs2) 
+                5'b00000: Wassign = {8'b00, B}; 
+                5'b00001: Wassign = {8'b00, C}; 
+                5'b00010: Wassign = {8'b00, D}; 
+                5'b00011: Wassign = {8'b00, E}; 
+                5'b00100: Wassign = {8'b00, H}; 
+                5'b00101: Wassign = {8'b00, L}; 
+                5'b00110: Wassign = {8'b00, W}; 
+                5'b00111: Wassign = {8'b00, Z}; 
+                5'b01000: Wassign = {8'b00, PC[15:8]}; 
+                5'b01001: Wassign = {8'b00, PC[7:0]}; 
+                5'b01010: Wassign = {B, C}; 
+                5'b01011: Wassign = {D, E}; 
+                5'b01100: Wassign = {H, L}; 
+                5'b01101: Wassign = {W, Z}; 
+                5'b01110: Wassign = SP; 
+                5'b01111: Wassign = PC; 
+                5'b10000: Wassign = Win; 
+                default : Wassign = 16'hzzzz; 
+            endcase 
+        end     
+    assign Wout = (Rs1 == 5'b10000 && Et) ? Wassign : 16'hzzzz; 
+    always @ (posedge (Clk || CJR) or posedge Clr) 
+        begin 
+            if(Clr) begin 
+                B<=0; C<=0; D<=0; E<=0; H<=8'h08; L<=8'h08; W<=0; Z<=0; 
+                SP<=16'h0ff0; PC<=0; 
+            end else begin 
+                if(Ip)  
+                    begin 
+                        if(CJR) PC <= PC + 3; 
+                        else PC <= PC + 1; 
+                    end 
+                if(Is) SP <= SP + 1'b1; 
+                if(Ds) SP <= SP - 1'b1;
+ if(Et) 
+                    case (Rs1) 
+                        5'b00000: B <= Wassign[7:0]; 
+                        5'b00001: C <= Wassign[7:0]; 
+                        5'b00010: D <= Wassign[7:0]; 
+                        5'b00011: E <= Wassign[7:0]; 
+                        5'b00100: H <= Wassign[7:0]; 
+                        5'b00101: L <= Wassign[7:0]; 
+                        5'b00110: W <= Wassign[7:0]; 
+                        5'b00111: Z <= Wassign[7:0]; 
+                        5'b01000: PC[15:8] <= Wassign[7:0]; 
+                        5'b01001: PC[7:0] <= Wassign[7:0]; 
+                        5'b01010: {B,C} <= Wassign; 
+                        5'b01011: {D,E} <= Wassign; 
+                        5'b01100: {H,L} <= Wassign; 
+                        5'b01101: {W,Z} <= Wassign; 
+                        5'b01110: SP <= Wassign; 
+                        5'b01111: PC <= Wassign; 
+                    endcase 
+               end              
+        end 
+endmodule
